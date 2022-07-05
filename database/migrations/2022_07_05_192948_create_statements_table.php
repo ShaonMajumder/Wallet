@@ -15,12 +15,12 @@ class CreateStatementsTable extends Migration
     {
         Schema::create('statements', function (Blueprint $table) {
             $table->id();
-            $table->string('date')->nullable();
+            $table->datetime('date');
             $table->string('ref_check')->nullable();
             $table->string('description')->nullable();
-            $table->string('withdraw')->nullable();
-            $table->string('deposit')->nullable();
-            $table->string('balance')->nullable();
+            $table->decimal('withdraw', 15, 5)->default(0);
+            $table->decimal('deposit', 15, 5)->default(0);
+            $table->decimal('balance', 15, 5)->default(0);
             $table->timestamps();
         });
     }
