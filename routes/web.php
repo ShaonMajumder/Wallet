@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\StatementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,3 +21,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/file-import',[StatementController::class,'importView'])->name('import-view');
+Route::post('/import',[StatementController::class,'import'])->name('import');
+Route::get('/export-users',[StatementController::class,'exportUsers'])->name('export-users');
