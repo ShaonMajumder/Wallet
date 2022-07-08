@@ -47,7 +47,6 @@ class StatementController extends Controller
 
     public function import(Request $request){
         try{
-
             if($request->start_row or $request->start_column){
                 $tempfile = Session::get('temporary');
                 $tempfile = Storage::disk('temporary')->path($tempfile);
@@ -59,7 +58,6 @@ class StatementController extends Controller
                 ]);
                 $the_file = $request->file('file');
                 $tempfile = $the_file->getRealPath();
-    
                 $fileName = time().'.'.$request->file->extension();  
                 Storage::disk('temporary')->put( $fileName, File::get($request->file));
                 Session::put('temporary',$fileName);
@@ -71,36 +69,27 @@ class StatementController extends Controller
             $column_limit = $sheet->getHighestDataColumn();
 
             $row_range = range( $request->start_row ?? 0, $row_limit );
-
-            if(strlen($column_limit)>1){
-                $column_range = [];
-                foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value) {
-                    $column_range[] = $value;
-                }
-            }else{
-                $column_range = range( 'A', $column_limit );
-            }
+            $column_range = [];
+            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value) $column_range[] = $value;
             
             $startcount = 0;
             $data = array();
             foreach ( $row_range as $row ) {
-                //             $sheet->setCellValueByColumnAndRow($i, 1, $header);
-                // $lastCellAddress = $sheet->getCellByColumnAndRow($i, 1)->getCoordinate();
-                
                 if( !empty($row)){
                     $temp = [];
                     foreach($column_range as $cc){
-                        if( ! in_array($cc,$request->exclude_column ?? []) ){
+                        if( (! in_array($cc,$request->exclude_column ?? []) ) ){
                             $temp[$cc] = $sheet->getCell( $cc . $row )->getValue();
                         }
-                        
                     }
-                    if (array_filter($temp)) {
-                        // all values are empty (where "empty" means == false)
+                    if ( $request->clean_empty_row == 'true' ) {
+                        if(array_filter($temp)){
+                            $data[] = $temp;
+                            $startcount++;
+                        }
+                    }else{
                         $data[] = $temp;
                         // [    
-                            // $sheet->setCellValueByColumnAndRow($i, 1, $header);
-                            // $lastCellAddress = $sheet->getCellByColumnAndRow($i, 1)->getCoordinate();
                             // 'CustomerName' =>$sheet->getCell( 'A' . $row )->getValue(),
                             // 'Gender' => $sheet->getCell( 'B' . $row )->getValue(),
                             // 'Address' => $sheet->getCell( 'C' . $row )->getValue(),
@@ -110,11 +99,7 @@ class StatementController extends Controller
                         // ];
                         $startcount++;
                     }
-                    
-                    
                 }
-                
-                
             }
             // DB::table('tbl_customer')->insert($data);
             return view('importView', compact('data','column_range','tempfile'));
@@ -122,16 +107,6 @@ class StatementController extends Controller
             $error_code = $e->errorInfo[1];
             return back()->withErrors('There was a problem uploading the data!');
         }
-        
-
-        
-
-        
-
-        
- 
-
-       
 
         // Excel::import(new StatementImport, $request->file('file')->store('files'));
         

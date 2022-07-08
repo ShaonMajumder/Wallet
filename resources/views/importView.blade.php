@@ -4,17 +4,19 @@
 <script>
     $(document).ready(function(){
         var toggleExclude = false;
+        var toggleCleanEmptyRow = false;
+
         $("#exclude_column").select2({
             tags: true,
             tokenSeparators: [',', ' ']
         });
 
-        @if(request()->input('exclude_column'))
-            values = Array.from( '{{ implode("",request()->input('exclude_column')) }}' );
-            values.forEach(function(valu){
-                $("#exclude_column").append("<option value='"+valu+"' selected>"+valu+"</option>");
-            });
-        @endif
+        // @if(request()->input('exclude_column'))
+        //     values = Array.from( '{{ implode("",request()->post('exclude_column')) }}' );
+        //     values.forEach(function(valu){
+        //         $("#exclude_column").append("<option value='"+valu+"' selected>"+valu+"</option>");
+        //     });
+        // @endif
         
         
         
@@ -40,6 +42,13 @@
             let color = toggleExclude ? 'red' : '';
             $('#toggleExclude').css('background-color', color);
         });
+
+        $("#clean_empty_row_button" ).click(function() {
+            toggleCleanEmptyRow = !toggleCleanEmptyRow;
+            let color = toggleCleanEmptyRow ? 'red' : '';
+            $('#clean_empty_row_button').css('background-color', color);
+            $('#clean_empty_row').val(toggleCleanEmptyRow);
+        });
         
     });
 </script>
@@ -56,30 +65,28 @@
                         </div>
                     @endif
 
-                    {{ __('You are logged in!') }}
-
-
-                    <form method="POST" action="{{ route('import') }}">
+                    <form method="POST" action="http://127.0.0.1:8000/post-view">
                         @csrf
-                        <input type='hidden' name="tempfile" value="{{ $tempfile }}" >
-                        <input type="hidden" name="column_range" value="">
+                        <input type="button" name="clean_empty_row_button" id="clean_empty_row_button" value="Clean Empty Row">
+                        <input type="hidden" name="clean_empty_row" id="clean_empty_row" id="clean_empty_row" value="false">
                         <div class="row">
-                          <div class="col">
-                            <label for="start_row">Starting Row</label>
-                            <input type="text" class="form-control" placeholder="Starting Row"  name="start_row" id="start_row" value="{{ old('start_row') }}">
-                          </div>
-                          <div class="col">
-                            <label for="start_column">Starting Column</label>
-                            <input type="text" class="form-control" placeholder="Starting Column"  name="start_column" id="start_column" value="{{ old('start_column') }}">
-                          </div>
+                            <div class="col">
+                                <label for="start_row">Starting Row</label>
+                                <input type="text" class="form-control" placeholder="Starting Row"  name="start_row" id="start_row" value="{{ request()->input('start_row') ?? 0 }}">
+                            </div>
+                            <div class="col">
+                                <label for="start_column">Starting Column</label>
+                                <input type="text" class="form-control" placeholder="Starting Column"  name="start_column" id="start_column" value="{{ request()->input('start_column') ?? 'A'  }}" required>
+                            </div>
                         </div>
                         <div class="form-group">
                             <input type="button" name="toggleExclude" id="toggleExclude" value="Exclude Toggle">
                             <label for="exclude_column">Exclude Column</label>
-                            <select name="exclude_column[]" id="exclude_column" class="form-control"  multiple="multiple"> </select>
+                            <select name="exclude_column[]" id="exclude_column" class="form-control"  multiple> </select>
                         </div>
-                        <input type="submit">
+                        <input type="submit" value="Show View">
                     </form>
+                    
                     
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover table-sm">
