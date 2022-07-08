@@ -114,6 +114,60 @@ class StatementController extends Controller
         // return redirect()->back();
     }
 
+
+    public function importInDB(Request $request){
+        try{
+            if($request->start_row or $request->start_column){
+                $tempfile = Session::get('temporary');
+                $tempfile = Storage::disk('temporary')->path($tempfile);
+                // Session::forget('temporary');
+                // dd($request->all());
+            }else{
+                $this->validate($request, [
+                    'file' => 'required|file|mimes:xls,xlsx'
+                ]);
+                $the_file = $request->file('file');
+                $tempfile = $the_file->getRealPath();
+                $fileName = time().'.'.$request->file->extension();  
+                Storage::disk('temporary')->put( $fileName, File::get($request->file));
+                Session::put('temporary',$fileName);
+            }
+
+            $spreadsheet  = IOFactory::load($tempfile);
+            $sheet        = $spreadsheet->getActiveSheet();
+            $row_limit    = $sheet->getHighestDataRow();
+            $column_limit = $sheet->getHighestDataColumn();
+
+            $row_range = range( $request->start_row ?? 0, $row_limit );
+            $column_range = [];
+            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value) $column_range[] = $value;
+            
+            $startcount = 0;
+            $data = array();
+            foreach ( $row_range as $row ) {
+                $data[] = [    
+                    'CustomerName' =>$sheet->getCell( 'A' . $row )->getValue(),
+                    'Gender' => $sheet->getCell( 'B' . $row )->getValue(),
+                    'Address' => $sheet->getCell( 'C' . $row )->getValue(),
+                    'City' => $sheet->getCell( 'D' . $row )->getValue(),
+                    'PostalCode' => $sheet->getCell( 'E' . $row )->getValue(),
+                    'Country' =>$sheet->getCell( 'F' . $row )->getValue(),
+                ];
+                $startcount++;    
+            }
+            DB::table('statements')->insert($data);
+            return view('importView', compact('data','column_range','tempfile'));
+        } catch (Exception $e) {
+            $error_code = $e->errorInfo[1];
+            return back()->withErrors('There was a problem uploading the data!');
+        }
+
+        // Excel::import(new StatementImport, $request->file('file')->store('files'));
+        
+        // return view('importView', compact());
+        // return redirect()->back();
+    }
+
     public function exportUsers(Request $request){
         return Excel::download(new StatementExport, 'users.xlsx');
     }

@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Artisan;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    return redirect()->route('import-view');
 });
 
 Auth::routes();
@@ -24,7 +25,7 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/file-import',[StatementController::class,'importView'])->name('import-view');
-Route::post('/post-view',[StatementController::class,'import'])->name('import');
+Route::post('/imported-view',[StatementController::class,'import'])->name('import');
 Route::get('/export-users',[StatementController::class,'exportUsers'])->name('export-users');
 
 Route::get('/clear-cache', function() {

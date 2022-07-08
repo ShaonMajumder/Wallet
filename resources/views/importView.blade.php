@@ -65,7 +65,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="http://127.0.0.1:8000/post-view">
+                    <form method="POST" action="{{ route('import') }}">
                         @csrf
                         <input type="button" name="clean_empty_row_button" id="clean_empty_row_button" value="Clean Empty Row">
                         <input type="hidden" name="clean_empty_row" id="clean_empty_row" id="clean_empty_row" value="false">
@@ -102,7 +102,7 @@
                             <tbody>
                                 @foreach ($data as $key=>$row)
                                     <tr>
-                                        <th scope="row" class="rowname" data-value="{{$key}}">{{$key}}</th>
+                                        <th scope="row" class="rowname" data-value="{{$key+1}}">{{$key+1}}</th>
                                         @foreach($row as $cell)
                                             <td>{{$cell}}</td>
                                         @endforeach
