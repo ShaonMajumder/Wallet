@@ -18,25 +18,26 @@ class StatementImport implements ToModel,WithHeadingRow
     */
     public function model(array $row)
     {
-        try{
-            return new Statement([
-                'date' => Carbon::parse( str_replace("'",'',$row['date']) )->format('Y-m-d h:i:s'),
-                'ref_check' => $row['ref_check'],
-                'description' => $row['description'],
-                'withdraw' => (float) str_replace(',','',$row['withdraw']) ?? 0,
-                'deposit' => (float) str_replace(',','',$row['deposit']) ?? 0,
-                'balance' => (float) str_replace(',','',$row['balance']) ?? 0
-            ]);
-        }catch(Exception $e){
-            return new Statement([
-                'date' => DateTime::createFromFormat("j-M-Y", str_replace("'",'',$row['date']) )->format('Y-m-d h:i:s'),
-                'ref_check' => $row['ref_check'],
-                'description' => $row['description'],
-                'withdraw' => (float) str_replace(',','',$row['withdraw']) ?? 0,
-                'deposit' => (float) str_replace(',','',$row['deposit']) ?? 0,
-                'balance' => (float) str_replace(',','',$row['balance']) ?? 0
-            ]);
-        }
+        // return $row;
+        // try{
+        //     return new Statement([
+        //         'date' => Carbon::parse( str_replace("'",'',$row['date']) )->format('Y-m-d h:i:s'),
+        //         'ref_check' => $row['ref_check'],
+        //         'description' => $row['description'],
+        //         'withdraw' => (float) str_replace(',','',$row['withdraw']) ?? 0,
+        //         'deposit' => (float) str_replace(',','',$row['deposit']) ?? 0,
+        //         'balance' => (float) str_replace(',','',$row['balance']) ?? 0
+        //     ]);
+        // }catch(Exception $e){
+        //     return new Statement([
+        //         'date' => DateTime::createFromFormat("j-M-Y", str_replace("'",'',$row['date']) )->format('Y-m-d h:i:s'),
+        //         'ref_check' => $row['ref_check'],
+        //         'description' => $row['description'],
+        //         'withdraw' => (float) str_replace(',','',$row['withdraw']) ?? 0,
+        //         'deposit' => (float) str_replace(',','',$row['deposit']) ?? 0,
+        //         'balance' => (float) str_replace(',','',$row['balance']) ?? 0
+        //     ]);
+        // }
         
     }
 }

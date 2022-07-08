@@ -21,6 +21,7 @@ class CreateStatementsTable extends Migration
             $table->decimal('withdraw', 15, 5)->default(0);
             $table->decimal('deposit', 15, 5)->default(0);
             $table->decimal('balance', 15, 5)->default(0);
+            $table->foreignId('causer_id')->constrained('users');
             $table->timestamps();
         });
     }

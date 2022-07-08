@@ -53,6 +53,13 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
         ],
 
+        'temporary' => [
+            'driver' => 'local',
+            'root' => storage_path('app/temporary'),
+            'url' => env('APP_URL').'/temporary',
+            'visibility' => 'public',
+        ],
+
     ],
 
     /*
@@ -68,6 +75,7 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('temporary') => storage_path('app/temporary'),
     ],
 
 ];
