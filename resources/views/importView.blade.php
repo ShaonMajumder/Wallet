@@ -11,8 +11,10 @@
             tokenSeparators: [',', ' ']
         });
 
+        
         @if(request()->input('exclude_column'))
-            values = Array.from( '{{ implode("",request()->post('exclude_column')) }}' );
+            
+            values = eval( {!!  "['". implode("','",request()->post('exclude_column')) ."']"  !!} ) ;
             values.forEach(function(valu){
                 $("#exclude_column").append("<option value='"+valu+"' selected>"+valu+"</option>");
             });
@@ -25,7 +27,7 @@
             var toggleCleanEmptyRow = false;
             let color = '';
         @endif
-        
+
         $('#clean_empty_row_button').css('background-color', color);
         
         $('.table-responsive').doubleScroll();
@@ -60,6 +62,7 @@
         
     });
 </script>
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
@@ -80,11 +83,11 @@
                         <div class="row">
                             <div class="col">
                                 <label for="start_row">Starting Row</label>
-                                <input type="text" class="form-control" placeholder="Starting Row"  name="start_row" id="start_row" value="{{ request()->input('start_row') ?? 0 }}">
+                                <input type="text" style="color: green;  font-weight: bold;" class="form-control" placeholder="Starting Row"  name="start_row" id="start_row" value="{{ request()->input('start_row') ?? 0 }}">
                             </div>
                             <div class="col">
                                 <label for="start_column">Starting Column</label>
-                                <input type="text" class="form-control" placeholder="Starting Column"  name="start_column" id="start_column" value="{{ request()->input('start_column') ?? 'A'  }}" required>
+                                <input type="text" style="color: green;  font-weight: bold;" class="form-control" placeholder="Starting Column"  name="start_column" id="start_column" value="{{ request()->input('start_column') ?? 'A'  }}" required>
                             </div>
                         </div>
                         <div class="form-group">
