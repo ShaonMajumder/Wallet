@@ -70,17 +70,19 @@ class StatementController extends Controller
 
             $row_range = range( $request->start_row ?? 0, $row_limit );
             $column_range = [];
-            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value) $column_range[] = $value;
-            
+            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value){  
+                if( (! in_array( $value,$request->exclude_column ?? []) ) ){
+                    $column_range[] = $value;
+                }
+            } 
+
             $startcount = 0;
             $data = array();
             foreach ( $row_range as $row ) {
                 if( !empty($row)){
                     $temp = [];
                     foreach($column_range as $cc){
-                        if( (! in_array($cc,$request->exclude_column ?? []) ) ){
-                            $temp[$cc] = $sheet->getCell( $cc . $row )->getValue();
-                        }
+                        $temp[$cc] = $sheet->getCell( $cc . $row )->getValue();
                     }
                     if ( $request->clean_empty_row == 'true' ) {
                         if(array_filter($temp)){
