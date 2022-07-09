@@ -11,12 +11,12 @@
             tokenSeparators: [',', ' ']
         });
 
-        // @if(request()->input('exclude_column'))
-        //     values = Array.from( '{{ implode("",request()->post('exclude_column')) }}' );
-        //     values.forEach(function(valu){
-        //         $("#exclude_column").append("<option value='"+valu+"' selected>"+valu+"</option>");
-        //     });
-        // @endif
+        @if(request()->input('exclude_column'))
+            values = Array.from( '{{ implode("",request()->post('exclude_column')) }}' );
+            values.forEach(function(valu){
+                $("#exclude_column").append("<option value='"+valu+"' selected>"+valu+"</option>");
+            });
+        @endif
         
         
         
@@ -28,12 +28,13 @@
         });
 
         $(".colname" ).click(function() {
-            $('#start_column').val( this.textContent );
             if(toggleExclude){
                 let values = $("#exclude_column").val();
                 if( ! values.includes(this.textContent) ){
                     $("#exclude_column").append("<option value='"+this.textContent+"' selected>"+this.textContent+"</option>");
                 }
+            }else{
+                $('#start_column').val( this.textContent );
             }
         });
 
@@ -102,7 +103,7 @@
                             <tbody>
                                 @foreach ($data as $key=>$row)
                                     <tr>
-                                        <th scope="row" class="rowname" data-value="{{$key+1}}">{{$key+1}}</th>
+                                        <th scope="row" class="rowname" data-value="{{ request()->input('start_row') ? request()->input('start_row') + $key : $key+1 }}">{{ request()->input('start_row') ? request()->input('start_row') + $key : $key+1 }} </th>
                                         @foreach($row as $cell)
                                             <td>{{$cell}}</td>
                                         @endforeach
