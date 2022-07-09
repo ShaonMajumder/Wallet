@@ -18,8 +18,15 @@
             });
         @endif
         
+        @if(request()->input('clean_empty_row') == 'true')
+            var toggleCleanEmptyRow = true;
+            let color = 'red';
+        @else
+            var toggleCleanEmptyRow = false;
+            let color = '';
+        @endif
         
-        
+        $('#clean_empty_row_button').css('background-color', color);
         
         $('.table-responsive').doubleScroll();
         
@@ -69,7 +76,7 @@
                     <form method="POST" action="{{ route('import') }}">
                         @csrf
                         <input type="button" name="clean_empty_row_button" id="clean_empty_row_button" value="Clean Empty Row">
-                        <input type="hidden" name="clean_empty_row" id="clean_empty_row" id="clean_empty_row" value="false">
+                        <input type="hidden" name="clean_empty_row" id="clean_empty_row" id="clean_empty_row" value="{{ request()->input('clean_empty_row') ?? 'false'}}">
                         <div class="row">
                             <div class="col">
                                 <label for="start_row">Starting Row</label>
@@ -103,7 +110,7 @@
                             <tbody>
                                 @foreach ($data as $key=>$row)
                                     <tr>
-                                        <th scope="row" class="rowname" data-value="{{ request()->input('start_row') ? request()->input('start_row') + $key : $key+1 }}">{{ request()->input('start_row') ? request()->input('start_row') + $key : $key+1 }} </th>
+                                        <th scope="row" class="rowname" data-value="{{ $key }}">{{ $key }} </th>
                                         @foreach($row as $cell)
                                             <td>{{$cell}}</td>
                                         @endforeach

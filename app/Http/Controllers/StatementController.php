@@ -76,7 +76,7 @@ class StatementController extends Controller
                 }
             } 
 
-            $startcount = 0;
+            $startcount = $request->start_row ?? 0;
             $data = array();
             foreach ( $row_range as $row ) {
                 if( !empty($row)){
@@ -86,23 +86,16 @@ class StatementController extends Controller
                     }
                     if ( $request->clean_empty_row == 'true' ) {
                         if(array_filter($temp)){
-                            $data[] = $temp;
-                            $startcount++;
+                            $data[$startcount] = $temp;
                         }
                     }else{
-                        $data[] = $temp;
-                        // [    
-                            // 'CustomerName' =>$sheet->getCell( 'A' . $row )->getValue(),
-                            // 'Gender' => $sheet->getCell( 'B' . $row )->getValue(),
-                            // 'Address' => $sheet->getCell( 'C' . $row )->getValue(),
-                            // 'City' => $sheet->getCell( 'D' . $row )->getValue(),
-                            // 'PostalCode' => $sheet->getCell( 'E' . $row )->getValue(),
-                            // 'Country' =>$sheet->getCell( 'F' . $row )->getValue(),
-                        // ];
-                        $startcount++;
+                        $data[$startcount] = $temp;
+                        
                     }
                 }
+                $startcount++;
             }
+            
             // DB::table('tbl_customer')->insert($data);
             return view('importView', compact('data','column_range','tempfile'));
         } catch (Exception $e) {
