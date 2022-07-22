@@ -5,6 +5,7 @@
     $(document).ready(function(){
         var toggleExclude = false;
         var toggleCleanEmptyRow = false;
+        var toggleHeaderRow = false;
 
         $("#exclude_column").select2({
             tags: true,
@@ -32,9 +33,15 @@
         
         $('.table-responsive').doubleScroll();
         
-        $(".rowname" ).click(function() {
+        $(".rowname").click(function() {
             $('#start_row').val( $(this).attr("data-value") );
         });
+
+        $("#set_header_button").click(function() {
+            $('#start_row').val( $(this).attr("data-value") );
+        });
+        
+        
 
         $(".colname" ).click(function() {
             if(toggleExclude){
@@ -59,6 +66,42 @@
             $('#clean_empty_row_button').css('background-color', color);
             $('#clean_empty_row').val(toggleCleanEmptyRow);
         });
+
+        $('#import-in-db').submit(function(e){
+            $("<input />").attr("type", "hidden")
+                    .attr("name", "clean_empty_row")
+                    .attr("value", $('#clean_empty_row').val() )
+                    .appendTo("#import-in-db");
+            $("<input />").attr("type", "hidden")
+                    .attr("name", "start_row")
+                    .attr("value", $('#start_row').val() )
+                    .appendTo("#import-in-db");
+            $("<input />").attr("type", "hidden")
+                    .attr("name", "start_column")
+                    .attr("value", $('#start_column').val() )
+                    .appendTo("#import-in-db");
+            $("<input />").attr("type", "hidden")
+                    .attr("name", "exclude_column")
+                    .attr("value", $('#exclude_column').val() )
+                    .appendTo("#import-in-db");
+
+            
+            var ek=[];
+            $('.dbvscell').each(function() {
+                ek.push($(this).val()); 
+            });
+
+            $("<input />").attr("type", "hidden")
+                    .attr("name", "dbvscell")
+                    .attr("value", ek )
+                    .appendTo("#import-in-db");
+
+            return true;
+        })
+
+        $('#finalize').click(function(){
+            $('#relation').css("display", "block");
+        });
         
     });
 </script>
@@ -78,8 +121,13 @@
 
                     <form method="POST" action="{{ route('import') }}">
                         @csrf
+                        <input type="button" name="set_header_button" id="set_header_button" value="Set Header">
+                        
                         <input type="button" name="clean_empty_row_button" id="clean_empty_row_button" value="Clean Empty Row">
                         <input type="hidden" name="clean_empty_row" id="clean_empty_row" id="clean_empty_row" value="{{ request()->input('clean_empty_row') ?? 'false'}}">
+                        
+                        
+                        
                         <div class="row">
                             <div class="col">
                                 <label for="start_row">Starting Row</label>
@@ -119,9 +167,28 @@
                                         @endforeach
                                     </tr>
                                 @endforeach
+                                <tr id="relation">
+                                    <th scope="row" > ### </th>    
+                                    @foreach ($column_range as $item)
+                                        <td>{{$item}} - <br>
+                                            <select class="dbvscell">
+                                                @foreach($dbcolumns as $dbcolname)
+                                                    <option value="{{ $dbcolname.'=>'.$item }}">{{ $dbcolname }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                    @endforeach
+                                </tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <input type="submit" id="finalize" value="Finalize">
+
+                    <form method="POST" id="import-in-db" action="{{ route('import-in-db') }}">
+                        @csrf
+                        <input type="submit" value="Import To DB">
+                    </form>
                     
                 </div>
             </div>

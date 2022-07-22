@@ -25,7 +25,8 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/file-import',[StatementController::class,'importView'])->name('import-view');
-Route::post('/imported-view',[StatementController::class,'import'])->name('import');
+Route::post('/import-view',[StatementController::class,'import'])->name('import');
+Route::post('/import-in-db',[StatementController::class,'importInDB'])->name('import-in-db');
 Route::get('/export-users',[StatementController::class,'exportUsers'])->name('export-users');
 
 Route::get('/clear-cache', function() {

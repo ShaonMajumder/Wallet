@@ -8,10 +8,10 @@ use App\Models\Statement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StatementImport;
 use App\Exports\StatementExport;
-
-
-
-
+use App\Http\Components\DBTrait;
+use Carbon\Carbon;
+use DateTime;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Session;
@@ -24,6 +24,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class StatementController extends Controller
 {
+    use DBTrait;
+    
     /**
      * Create a new controller instance.
      *
@@ -48,6 +50,10 @@ class StatementController extends Controller
     public function import(Request $request){
         try{
             if($request->start_row or $request->start_column){
+                if($request->dbvscell){
+                    $request->merge(['dbvscell' => is_array($request->dbvscell) ? $request->dbvscell : explode(',',$request->dbvscell) ]);
+                }
+                $request->merge(['exclude_column' => is_array($request->exclude_column) ? $request->exclude_column : explode(',',$request->exclude_column) ]);
                 $tempfile = Session::get('temporary');
                 $tempfile = Storage::disk('temporary')->path($tempfile);
                 // Session::forget('temporary');
@@ -90,14 +96,14 @@ class StatementController extends Controller
                         }
                     }else{
                         $data[$startcount] = $temp;
-                        
                     }
                 }
                 $startcount++;
             }
+            $dbcolumns = $this->getDBColumns(new Statement);
             
             // DB::table('tbl_customer')->insert($data);
-            return view('importView', compact('data','column_range','tempfile'));
+            return view('importView', compact('data','column_range','tempfile', 'dbcolumns'));
         } catch (Exception $e) {
             $error_code = $e->errorInfo[1];
             return back()->withErrors('There was a problem uploading the data!');
@@ -112,7 +118,12 @@ class StatementController extends Controller
 
     public function importInDB(Request $request){
         try{
+            
             if($request->start_row or $request->start_column){
+                if($request->dbvscell){
+                    $request->merge(['dbvscell' => is_array($request->dbvscell) ? $request->dbvscell : explode(',',$request->dbvscell) ]);
+                }
+                $request->merge(['exclude_column' => is_array($request->exclude_column) ? $request->exclude_column : explode(',',$request->exclude_column) ]);
                 $tempfile = Session::get('temporary');
                 $tempfile = Storage::disk('temporary')->path($tempfile);
                 // Session::forget('temporary');
@@ -135,23 +146,46 @@ class StatementController extends Controller
 
             $row_range = range( $request->start_row ?? 0, $row_limit );
             $column_range = [];
-            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value) $column_range[] = $value;
-            
-            $startcount = 0;
+            foreach ($this->excelColumnRange($request->start_column ?? 'A', $column_limit) as $value){  
+                if( (! in_array( $value,$request->exclude_column ?? []) ) ){
+                    $column_range[] = $value;
+                }
+            } 
+
+            $startcount = $request->start_row ?? 0;
             $data = array();
             foreach ( $row_range as $row ) {
-                $data[] = [    
-                    'CustomerName' =>$sheet->getCell( 'A' . $row )->getValue(),
-                    'Gender' => $sheet->getCell( 'B' . $row )->getValue(),
-                    'Address' => $sheet->getCell( 'C' . $row )->getValue(),
-                    'City' => $sheet->getCell( 'D' . $row )->getValue(),
-                    'PostalCode' => $sheet->getCell( 'E' . $row )->getValue(),
-                    'Country' =>$sheet->getCell( 'F' . $row )->getValue(),
-                ];
-                $startcount++;    
+                // linking db column to spreadsheet column
+                $colLink = [];
+                foreach($request->dbvscell as $dbcell){
+                    list($dbfield,$cellname) = explode ("=>", $dbcell);
+                    $colLink[$dbfield] = $cellname;
+                }
+
+                //empty row check
+                $temp = [];
+                foreach($column_range as $cc){
+                    $temp[$cc] = $sheet->getCell( $cc . $row )->getValue();
+                }
+                
+                if(array_filter($temp)){
+                    $data[$startcount] = [
+                        'date' => Carbon::parse( str_replace("'",'', $sheet->getCell( $colLink['date'] . $row )->getValue()) )->format('Y-m-d h:i:s') ?? DateTime::createFromFormat("j-M-Y", str_replace("'",'', $sheet->getCell( $colLink['date'] . $row )->getValue()) )->format('Y-m-d h:i:s'),
+                        'ref_check' => $sheet->getCell( $colLink['ref_check'] . $row )->getValue(),
+                        'description' => $sheet->getCell( $colLink['description'] . $row )->getValue(),
+                        'withdraw' => (float) str_replace(',','',  $sheet->getCell( $colLink['withdraw'] . $row )->getValue() ) ?? 0,
+                        'deposit' => (float) str_replace(',','',  $sheet->getCell( $colLink['deposit'] . $row )->getValue() ) ?? 0,
+                        'balance' => (float) str_replace(',','',  $sheet->getCell( $colLink['balance'] . $row )->getValue() ) ?? 0,
+                        'causer_id' => Auth::user()->id
+                    ];
+                }
+                $startcount++;
+                
             }
-            DB::table('statements')->insert($data);
-            return view('importView', compact('data','column_range','tempfile'));
+            
+            Statement::insert($data);
+            $dbcolumns = $this->getDBColumns(new Statement);
+            return view('importView', compact('data','column_range','tempfile','dbcolumns'));
         } catch (Exception $e) {
             $error_code = $e->errorInfo[1];
             return back()->withErrors('There was a problem uploading the data!');
